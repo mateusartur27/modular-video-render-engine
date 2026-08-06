@@ -30,10 +30,8 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Setup FFmpeg
-        uses: ffmpeg-actions/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: 6.0
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Fetch Render Manifest from Cloudflare R2
         run: |
