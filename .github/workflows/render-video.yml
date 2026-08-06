@@ -1,0 +1,48 @@
+name: Render Video Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      jobId:
+        description: "ID do Job de Renderização retornado pelo Control Plane"
+        required: true
+        type: string
+      videoId:
+        description: "ID do Vídeo a ser renderizado"
+        required: true
+        type: string
+
+jobs:
+  render:
+    name: Render MP4 with Remotion & FFmpeg
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup FFmpeg
+        uses: ffmpeg-actions/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: 6.0
+
+      - name: Fetch Render Manifest from Cloudflare R2
+        run: |
+          echo "Buscando manifesto do job ${{ inputs.jobId }} para o vídeo ${{ inputs.videoId }}..."
+
+      - name: Render Video with Remotion CLI
+        run: |
+          npx remotion render src/index.ts TikTokVideo out/${{ inputs.videoId }}.mp4
+
+      - name: Upload MP4 to Cloudflare R2
+        run: |
+          echo "Enviando arquivo out/${{ inputs.videoId }}.mp4 para o Cloudflare R2..."
