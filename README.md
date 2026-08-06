@@ -1,25 +1,29 @@
-# Modular Video Render Engine
+# Remotion Video Render Engine
 
-Este repositório é a **Engine de Renderização Genérica e Pública** para a plataforma de automação de vídeos modulares. Ela é acionada automaticamente via **GitHub Actions** (`workflow_dispatch`) a partir do Control Plane hospedado no Cloudflare Workers.
+A React and Remotion project for programmatically generating and rendering short-form video compositions using dynamic props, React components, and automated video processing.
 
-## 📐 Arquitetura e Funcionamento
+## 🚀 Features
 
-1. O **Control Plane** (privado) orquestra os módulos de IA, narração e mídia, gerando um manifesto imutável (`RenderManifest`).
-2. O Cloudflare Worker notifica este repositório enviando o identificador do job (`jobId`).
-3. O **GitHub Actions** executa este repositório, baixa o manifesto e assets do Cloudflare R2, renderiza o vídeo via Remotion / FFmpeg em 1080x1920 a 30 FPS e devolve o arquivo MP4 final para o Cloudflare R2.
+- **Programmatic Video Generation**: Renders vertical video compositions (1080x1920 at 30 FPS) with dynamic text, audio, and visual overlays using React.
+- **Remotion Integration**: Built on top of Remotion for frame-accurate video rendering and H.264 MP4 output.
+- **Automated Workflows**: Includes GitHub Actions workflow for automated background video compilation.
 
-> [!NOTE]
-> Este repositório é totalmente agnóstico de canal. Nenhuma regra de canal, cor, fonte ou instrução de IA fica neste repositório. O layout e os estilos são orientados estritamente pelo manifesto recebido no momento da execução.
+## 🛠️ Usage
 
-## 🛠️ Comandos Locais
+### Prerequisites
+
+- Node.js 20+
+- FFmpeg 6.0+
+
+### Installation & Commands
 
 ```bash
-# Instalar dependências
+# Install dependencies
 npm install
 
-# Compilar o bundle do Remotion
+# Build the Remotion bundle
 npm run build
 
-# Renderizar um vídeo de teste
-npm run render
+# Render video locally
+npx remotion render src/index.ts TikTokVideo out/video.mp4
 ```
