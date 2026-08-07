@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       jobId:
-        description: "ID do Job de Renderização retornado pelo Control Plane"
+        description: "ID do Job de Renderização"
         required: true
         type: string
       videoId:
@@ -34,13 +34,19 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Fetch Render Manifest from Cloudflare R2
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          echo "Buscando manifesto do job ${{ inputs.jobId }} para o vídeo ${{ inputs.videoId }}..."
+          echo "Buscando manifesto do job ${{ inputs.jobId }} para o vídeo ${{ inputs.videoId }} no Cloudflare R2..."
 
       - name: Render Video with Remotion CLI
         run: |
           npx remotion render src/index.ts TikTokVideo out/${{ inputs.videoId }}.mp4
 
       - name: Upload MP4 to Cloudflare R2
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           echo "Enviando arquivo out/${{ inputs.videoId }}.mp4 para o Cloudflare R2..."
