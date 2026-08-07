@@ -1,5 +1,10 @@
 node_modules/
 out/
+
+# Artefatos de job, gerados pelo preparo. Midia nunca e versionada.
+public/assets/
+public/manifest.json
+
 .env
 .env.*
 *.log

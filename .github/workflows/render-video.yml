@@ -1,52 +1,67 @@
-name: Render Video Workflow
+name: Render Video
+
+# Este repositorio e publico e nao guarda credencial de nuvem.
+#
+# O control plane entrega uma URL assinada e de vida curta para o manifesto, e o
+# manifesto carrega URLs assinadas para narracao, musica e takes. Assim o job le
+# o que precisa sem nenhum segredo de Cloudflare aqui.
+#
+# O envio do MP4 ao R2 ainda nao existe: ele depende da URL assinada de escrita,
+# que sera emitida pelo control plane no passo 7 do plano de correcao. Enquanto
+# isso o MP4 sai como artefato do proprio Actions, que e verificavel. Nenhum
+# passo finge sucesso.
 
 on:
   workflow_dispatch:
     inputs:
       jobId:
-        description: "ID do Job de Renderização"
+        description: "ID do job de renderizacao emitido pelo control plane"
         required: true
         type: string
       videoId:
-        description: "ID do Vídeo a ser renderizado"
+        description: "ID do video a renderizar"
+        required: true
+        type: string
+      manifestUrl:
+        description: "URL assinada e temporaria do RenderManifest@2"
         required: true
         type: string
 
 jobs:
   render:
-    name: Render MP4 with Remotion & FFmpeg
+    name: Render MP4 with Remotion
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
-      - name: Fetch Render Manifest from Cloudflare R2
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          echo "Buscando manifesto do job ${{ inputs.jobId }} para o vídeo ${{ inputs.videoId }} no Cloudflare R2..."
+      - name: Stage job from signed manifest
+        run: node scripts/stage-job.mjs --manifest-url "${{ inputs.manifestUrl }}"
 
-      - name: Render Video with Remotion CLI
-        run: |
-          npx remotion render src/index.ts TikTokVideo out/${{ inputs.videoId }}.mp4
+      - name: Render
+        run: npx remotion render src/index.ts Video "out/${{ inputs.videoId }}.mp4" --log=error
 
-      - name: Upload MP4 to Cloudflare R2
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          echo "Enviando arquivo out/${{ inputs.videoId }}.mp4 para o Cloudflare R2..."
+      - name: Verify output against the manifest
+        run: node scripts/verify-output.mjs --video "out/${{ inputs.videoId }}.mp4"
+
+      - name: Upload MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.videoId }}
+          path: out/${{ inputs.videoId }}.mp4
+          if-no-files-found: error
+          retention-days: 7

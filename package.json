@@ -2,11 +2,15 @@
   "name": "modular-video-render-engine",
   "version": "1.0.0",
   "private": true,
-  "description": "Public Render Engine for Modular Video Automation using Remotion and GitHub Actions",
+  "description": "Public render engine: consumes a RenderManifest@2 and produces an MP4. No channel rules, no credentials.",
   "main": "src/index.ts",
   "scripts": {
+    "studio": "remotion studio src/index.ts",
     "build": "remotion bundle src/index.ts",
-    "render": "remotion render src/index.ts TikTokVideo out/video.mp4"
+    "render": "remotion render src/index.ts Video out/video.mp4",
+    "stage": "node scripts/stage-job.mjs",
+    "verify": "node scripts/verify-output.mjs",
+    "check": "tsc --noEmit"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.0",
