@@ -2,14 +2,16 @@ name: Render Video
 
 # Este repositorio e publico e nao guarda credencial de nuvem.
 #
-# O control plane entrega uma URL assinada e de vida curta para o manifesto, e o
-# manifesto carrega URLs assinadas para narracao, musica e takes. Assim o job le
-# o que precisa sem nenhum segredo de Cloudflare aqui.
-#
-# O envio do MP4 ao R2 ainda nao existe: ele depende da URL assinada de escrita,
-# que sera emitida pelo control plane no passo 7 do plano de correcao. Enquanto
-# isso o MP4 sai como artefato do proprio Actions, que e verificavel. Nenhum
-# passo finge sucesso.
+# O control plane entrega URLs assinadas e de vida curta: uma para ler o
+# manifesto, uma para enviar o MP4 pronto, e o proprio manifesto carrega URLs
+# assinadas para narracao, musica e takes. Assim o job le e escreve o que precisa
+# sem nenhum segredo de Cloudflare aqui.
+
+# O nome da execucao carrega o jobId de proposito: `workflow_dispatch` responde
+# HTTP 204 e nao devolve o id da execucao, entao esta e a unica forma de o control
+# plane saber qual execucao e a dele. Com tres videos por lote, casar pela
+# execucao mais recente seria uma corrida.
+run-name: "render ${{ inputs.jobId }}"
 
 on:
   workflow_dispatch:
@@ -24,6 +26,10 @@ on:
         type: string
       manifestUrl:
         description: "URL assinada e temporaria do RenderManifest@2"
+        required: true
+        type: string
+      uploadUrl:
+        description: "URL assinada e temporaria para enviar o MP4 ao R2"
         required: true
         type: string
 
@@ -58,7 +64,13 @@ jobs:
       - name: Verify output against the manifest
         run: node scripts/verify-output.mjs --video "out/${{ inputs.videoId }}.mp4"
 
-      - name: Upload MP4
+      - name: Upload MP4 to the signed url
+        run: node scripts/upload-output.mjs --video "out/${{ inputs.videoId }}.mp4" --url "${{ inputs.uploadUrl }}"
+
+      # Copia de conveniencia para inspecao humana. O artefato autoritativo e o
+      # que foi enviado ao R2 no passo anterior; se aquele passo falhar, o job
+      # falha, e este anexo nao mascara nada.
+      - name: Keep a copy as an Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.videoId }}
