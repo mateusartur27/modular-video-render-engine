@@ -93,6 +93,20 @@ async function main() {
     failures.push(`arquivo com apenas ${sizeBytes} bytes`);
   }
 
+  // O teto do caminho de entrega, conferido aqui e nao descoberto la.
+  //
+  // Em 2026-08-09 um MP4 de 117,14 MB passou por toda a renderizacao e pela
+  // verificacao, e so morreu no upload, com um HTTP 413 do Cloudflare e seis
+  // minutos de Actions gastos. Reprovar aqui custa nada e diz o que fazer.
+  const maxSizeBytes = manifest.output?.maxSizeBytes;
+  if (typeof maxSizeBytes === "number" && sizeBytes > maxSizeBytes) {
+    failures.push(
+      `arquivo com ${(sizeBytes / 1024 / 1024).toFixed(2)} MB, acima do teto de ` +
+        `${(maxSizeBytes / 1024 / 1024).toFixed(2)} MB que o caminho de entrega aceita. ` +
+        `Aumente output.crf no canal para comprimir mais.`,
+    );
+  }
+
   console.log(`Video ${manifest.videoId} do job ${manifest.jobId}`);
   console.log(`  medido: ${measured.width}x${measured.height} @ ${measured.fps.toFixed(3)}fps, ${measured.codec}`);
   console.log(`  frames: ${measured.frames} (manifesto: ${expected.durationFrames})`);

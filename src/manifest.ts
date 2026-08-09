@@ -153,6 +153,14 @@ export interface RenderManifest {
     container: string;
     codec: string;
     pixelFormat: string;
+    /** Qualidade de codificacao. Menor e melhor imagem e arquivo maior. */
+    crf: number;
+    /**
+     * Teto de tamanho que o caminho de entrega aguenta, conferido **antes** do
+     * upload. O control plane recebe o MP4 por URL assinada num Cloudflare
+     * Worker, que aceita no maximo 100 MB de corpo.
+     */
+    maxSizeBytes: number;
   };
   colorGrading?: ColorGradingSettings;
   overlays?: OverlaySettings;

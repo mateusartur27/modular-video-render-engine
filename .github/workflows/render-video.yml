@@ -58,8 +58,17 @@ jobs:
       - name: Stage job from signed manifest
         run: node scripts/stage-job.mjs --manifest-url "${{ inputs.manifestUrl }}"
 
+      # O CRF vem do manifesto, nunca daqui.
+      #
+      # Sem ele o encoder usava o proprio padrao e o tamanho ficava a cargo da
+      # imagem: em 2026-08-09 dois videos de praticamente a mesma duracao sairam
+      # com 72,3 MB e 117,1 MB, e o segundo foi recusado no upload com HTTP 413,
+      # porque um Cloudflare Worker aceita no maximo 100 MB de corpo.
       - name: Render
-        run: npx remotion render src/index.ts Video "out/${{ inputs.videoId }}.mp4" --log=error
+        run: |
+          CRF=$(node -p "require('./public/manifest.json').output.crf")
+          echo "Renderizando com crf=$CRF"
+          npx remotion render src/index.ts Video "out/${{ inputs.videoId }}.mp4" --crf "$CRF" --log=error
 
       - name: Verify output against the manifest
         run: node scripts/verify-output.mjs --video "out/${{ inputs.videoId }}.mp4"
