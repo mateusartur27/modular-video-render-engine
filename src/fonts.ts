@@ -41,7 +41,11 @@ export async function loadDeclaredFonts(manifest: RenderManifest): Promise<strin
     if (!entry) continue;
 
     const font = await entry.load();
-    font.loadFont();
+    // `loadFont()` injeta o CSS e devolve imediatamente; os arquivos ainda estao
+    // baixando. Sem `waitUntilDone()` o `continueRender` dispararia antes de a
+    // fonte existir, e o primeiro frame sairia com o fallback — que e exatamente
+    // o defeito que este arquivo existe para corrigir.
+    await font.loadFont().waitUntilDone();
     loaded.push(family);
   }
 
