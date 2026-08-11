@@ -1,4 +1,6 @@
-import { AbsoluteFill } from "remotion";
+import { useEffect, useState } from "react";
+import { AbsoluteFill, continueRender, delayRender } from "remotion";
+import { loadDeclaredFonts } from "./fonts";
 import { AudioMix } from "./components/AudioMix";
 import { Captions } from "./components/Captions";
 import { Grade } from "./components/Grade";
@@ -23,6 +25,27 @@ export interface VideoCompositionProps extends Record<string, unknown> {
  * nao altere as cores declaradas do texto.
  */
 export const VideoComposition: React.FC<VideoCompositionProps> = ({ manifest }) => {
+  // O render espera as fontes carregarem antes de desenhar o primeiro frame.
+  //
+  // Sem `delayRender` o Remotion renderiza com o que estiver disponivel, e o
+  // resultado seria o de antes: pilha CSS correta, fonte ausente, sans generico
+  // no lugar do que o canal declarou. O `continueRender` acontece mesmo quando o
+  // carregamento falha, porque um render sem a fonte certa e melhor que nenhum.
+  const [handle] = useState(() => delayRender("Carregando as fontes do manifesto"));
+
+  useEffect(() => {
+    if (!manifest) {
+      continueRender(handle);
+      return;
+    }
+
+    loadDeclaredFonts(manifest)
+      .catch((error: unknown) => {
+        console.warn(`Falha ao carregar fontes declaradas: ${String(error)}`);
+      })
+      .finally(() => continueRender(handle));
+  }, [handle, manifest]);
+
   if (!manifest) {
     return (
       <AbsoluteFill

@@ -109,14 +109,25 @@ export interface CaptionWord {
 export interface CaptionsTrack {
   enabled: boolean;
   trackId: string;
+  /**
+   * Unica fonte de estilo de legenda, e o **contrato** que as palavras obedecem:
+   * o control plane recusa construir um manifesto cujas palavras desobedecam o
+   * que este bloco declara (ADR 0020).
+   */
   layout: {
     fontFamily: string;
     highlightFontFamily: string;
+    secondaryFontFamily: string;
     layoutMode: string;
     maxWordsPerPhrase: number;
     anticipationMs: number;
     safeAreaBottomPx: number;
     uppercase: boolean;
+    fontSizePx: number;
+    fontWeight: number;
+    strokeColor: string;
+    strokeWidthPx: number;
+    lineHeightPx: number;
   };
   words: CaptionWord[];
 }
