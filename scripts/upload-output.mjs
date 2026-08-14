@@ -9,12 +9,24 @@
  * proxeava os bytes pelo corpo da requisicao — e por isso tinha teto de
  * 100 MB. Agora o PUT vai direto no R2, sem esse teto.
  *
- * O hash e calculado aqui e enviado como `x-amz-meta-sha256`, a convencao S3
- * de metadado customizado: o R2 grava isso como metadado do objeto, o mesmo
- * campo que o control plane ja confere em toda leitura. Uma escrita S3 bem
- * sucedida devolve 200 vazio com `ETag`, nao um corpo JSON — nao ha o que
- * conferir aqui alem do HTTP status; a conferencia de hash acontece do lado
- * de quem le o objeto depois.
+ * **Corrigido em 2026-08-14, medido contra o R2 real**: a primeira versao
+ * enviava `x-amz-meta-sha256` para o R2 gravar como metadado consultavel
+ * depois — mas o R2 exige que **todo** header `x-amz-meta-*` faca parte dos
+ * headers assinados, mesmo em URL pre-assinada por query string. Como o
+ * control plane assina a URL **antes** deste arquivo existir, ele nunca
+ * poderia assinar um hash que so existe depois do render terminar — a
+ * tentativa real devolveu `SignatureDoesNotMatch` sempre. `content-type`,
+ * ao contrario, o R2 aceita sem exigir assinatura (medido tambem).
+ *
+ * A conferencia de integridade agora e o `ETag` que o proprio R2 devolve na
+ * resposta do PUT: para um objeto enviado num `PUT` simples (nao
+ * multipart), o `ETag` do S3/R2 e o MD5 do conteudo. Comparar contra o MD5
+ * calculado localmente detecta corrupcao em transito sem precisar assinar
+ * nada a mais. **O que isso nao faz**: gravar SHA-256 como metadado do
+ * objeto. `R2ArtifactStore.head()`/`get()`, do lado do control plane, vao
+ * ler `sha256: ""` para este artefato especifico — nenhum consumidor atual
+ * depende desse campo para a saida do render, mas fica registrado como
+ * limitacao real, nao escondida (ADR 0025).
  *
  * Uso:
  *   node scripts/upload-output.mjs --video out/video-1.mp4 --url https://...
@@ -44,6 +56,7 @@ async function main() {
   const info = await stat(path);
   const bytes = await readFile(path);
   const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const md5 = createHash("md5").update(bytes).digest("hex");
 
   console.log(`Enviando ${args.video}`);
   console.log(`  tamanho: ${(info.size / 1024 / 1024).toFixed(2)} MB`);
@@ -54,7 +67,6 @@ async function main() {
     headers: {
       "content-type": "video/mp4",
       "content-length": String(info.size),
-      "x-amz-meta-sha256": sha256,
     },
     body: bytes,
   });
@@ -66,7 +78,12 @@ async function main() {
     throw new Error(`Upload recusado com HTTP ${response.status}: ${text.slice(0, 300)}`);
   }
 
-  console.log(`  aceito: etag ${response.headers.get("etag") ?? "(sem etag)"}, ${info.size} bytes`);
+  const etag = (response.headers.get("etag") ?? "").replace(/^"|"$/g, "");
+  if (etag && etag !== md5) {
+    throw new Error(`Upload aceito, mas o ETag do R2 (${etag}) nao bate com o MD5 local (${md5}) — corrupcao em transito.`);
+  }
+
+  console.log(`  aceito: etag ${etag || "(sem etag)"} confere com o MD5 local, ${info.size} bytes`);
 }
 
 main().catch((error) => {
