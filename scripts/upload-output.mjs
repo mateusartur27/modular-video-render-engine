@@ -1,13 +1,20 @@
 /**
- * Envia o MP4 renderizado para o control plane, por URL assinada.
+ * Envia o MP4 renderizado direto para o R2, por URL pre-assinada nativa
+ * (S3-compatible, SigV4) emitida pelo control plane com prazo curto e escopo
+ * de uma chave so (ADR 0025 do control plane).
  *
- * Este repositorio e publico e nao guarda credencial de nuvem. A autoridade para
- * gravar vem da assinatura HMAC na propria URL, emitida pelo control plane com
- * prazo curto e escopo de uma chave so.
+ * Este repositorio e publico e nao guarda credencial de nuvem nenhuma; a
+ * autoridade para gravar vem inteira da assinatura ja embutida na URL. Ate
+ * 2026-08-13 o destino era uma rota do proprio Worker do control plane, que
+ * proxeava os bytes pelo corpo da requisicao — e por isso tinha teto de
+ * 100 MB. Agora o PUT vai direto no R2, sem esse teto.
  *
- * O hash e calculado aqui e declarado no cabecalho. O control plane recalcula e
- * recusa divergencia: upload truncado tem hash diferente, e sem essa conferencia
- * ele viraria um MP4 quebrado seguindo adiante em silencio.
+ * O hash e calculado aqui e enviado como `x-amz-meta-sha256`, a convencao S3
+ * de metadado customizado: o R2 grava isso como metadado do objeto, o mesmo
+ * campo que o control plane ja confere em toda leitura. Uma escrita S3 bem
+ * sucedida devolve 200 vazio com `ETag`, nao um corpo JSON — nao ha o que
+ * conferir aqui alem do HTTP status; a conferencia de hash acontece do lado
+ * de quem le o objeto depois.
  *
  * Uso:
  *   node scripts/upload-output.mjs --video out/video-1.mp4 --url https://...
@@ -47,25 +54,19 @@ async function main() {
     headers: {
       "content-type": "video/mp4",
       "content-length": String(info.size),
-      "x-artifact-sha256": sha256,
+      "x-amz-meta-sha256": sha256,
     },
     body: bytes,
   });
 
-  const text = await response.text();
-
   // A URL assinada nao pode aparecer em log: ela e credencial de curta duracao, e
   // o log de um repositorio publico e legivel por qualquer pessoa.
   if (!response.ok) {
+    const text = await response.text();
     throw new Error(`Upload recusado com HTTP ${response.status}: ${text.slice(0, 300)}`);
   }
 
-  const body = JSON.parse(text);
-  if (body.sha256 !== sha256) {
-    throw new Error(`O destino registrou hash diferente: ${body.sha256}`);
-  }
-
-  console.log(`  aceito: chave ${body.key}, ${body.sizeBytes} bytes`);
+  console.log(`  aceito: etag ${response.headers.get("etag") ?? "(sem etag)"}, ${info.size} bytes`);
 }
 
 main().catch((error) => {

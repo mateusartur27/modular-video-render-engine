@@ -37,7 +37,13 @@ jobs:
   render:
     name: Render MP4 with Remotion
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Era 60 min, dimensionado para os videos curtos (45-75s, ~1500 frames a
+    # 30fps) do primeiro canal. Um documentario de 5 min (~9000 frames, 6x
+    # mais) pode nao caber nisso -- subiu para 180 min ate uma execucao real
+    # medir o tempo de verdade (controle-de-plano ADR 0026). O limite de
+    # espera do control plane (`runTimeoutSeconds` no canal) precisa cobrir
+    # pelo menos este valor.
+    timeout-minutes: 180
 
     steps:
       - name: Checkout
