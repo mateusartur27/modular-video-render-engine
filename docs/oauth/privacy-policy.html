@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Política de privacidade — Documentário Diário</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; max-width: 720px; margin: 3rem auto; padding: 0 1.5rem; line-height: 1.6; color: #1a1a1a; }
+    h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.15rem; margin-top: 2rem; }
+    footer { margin-top: 3rem; font-size: 0.85rem; color: #666; }
+    a { color: #0b5fff; }
+  </style>
+</head>
+<body>
+  <h1>Política de privacidade</h1>
+  <p><em>Última atualização: 17 de agosto de 2026.</em></p>
+
+  <p>Esta política descreve como a aplicação "Documentário Diário" (ver <a href="./index.html">página inicial</a>)
+  acessa e usa dados de conta do Google, exigido pela verificação de aplicações OAuth do Google. A aplicação é de
+  uso pessoal único, operada e usada exclusivamente pelo desenvolvedor, para automatizar a publicação de vídeos no
+  próprio canal do YouTube. Não há outros usuários e nenhum dado é coletado de terceiros.</p>
+
+  <h2>Dados acessados</h2>
+  <p>A aplicação solicita dois escopos de acesso da API do YouTube, via OAuth 2.0:</p>
+  <ul>
+    <li><code>https://www.googleapis.com/auth/youtube.upload</code> — permite enviar vídeos ao canal do
+    YouTube do operador;</li>
+    <li><code>https://www.googleapis.com/auth/youtube.readonly</code> — permite ler metadados básicos do
+    canal (nome, identificador, configuração de privacidade padrão), usado apenas para confirmar que o canal
+    autenticado é o correto antes de qualquer publicação.</li>
+  </ul>
+  <p>A aplicação não lê, armazena nem processa nenhum outro dado da Conta Google do operador (e-mail, contatos,
+  Drive, agenda, ou qualquer outro produto Google além da API do YouTube listada acima).</p>
+
+  <h2>Como os dados são usados</h2>
+  <p>O único uso dos dados de acesso é automatizar o envio de vídeos ao canal do próprio operador, num horário
+  diário fixo, sem intervenção humana a cada publicação. O token de atualização (refresh token) obtido no
+  consentimento OAuth é usado exclusivamente por esse processo automatizado.</p>
+
+  <h2>Compartilhamento de dados</h2>
+  <p>Nenhum dado de conta do Google é compartilhado, vendido, transferido ou disponibilizado a terceiros, sob
+  nenhuma circunstância. A aplicação não tem outros usuários além do próprio operador e não expõe nenhuma
+  interface pública que exponha esses dados.</p>
+
+  <h2>Armazenamento e proteção</h2>
+  <p>As credenciais OAuth (client ID, client secret e refresh token) são armazenadas como segredos criptografados
+  na infraestrutura de produção (Cloudflare Workers Secrets), nunca em texto plano, nunca em controle de versão e
+  nunca registradas em log. Apenas o processo automatizado do próprio operador tem acesso a esses segredos.</p>
+
+  <h2>Retenção e revogação</h2>
+  <p>O token de atualização é mantido até ser revogado pelo operador ou substituído por um novo consentimento. O
+  operador (e, por ser uso pessoal, o próprio titular da conta) pode revogar o acesso a qualquer momento em
+  <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>, o que invalida o token
+  imediatamente.</p>
+
+  <h2>Contato</h2>
+  <p>Dúvidas sobre esta política: mateus2002ns@gmail.com</p>
+
+  <footer>
+    Documentário Diário — automação de publicação de vídeo de uso pessoal único.
+  </footer>
+</body>
+</html>
