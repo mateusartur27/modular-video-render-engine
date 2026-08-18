@@ -58,6 +58,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # O runner nao vem com ffmpeg instalado (confirmado no log real: "The
+      # following NEW packages will be installed"), e uma vez, `apt-get update`
+      # sozinho levou 7m31s por instabilidade do espelho de pacotes daquela
+      # execucao especifica -- nao acontece toda vez, mas cachear os .deb
+      # baixados evita depender da rede do espelho caso aconteca de novo.
+      # `apt-get install` ainda roda sempre, so sem baixar de novo quando o
+      # cache bate: a instalacao em si (registrar no sistema) nao e cacheada,
+      # so o download.
+      - name: Cache APT packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-ffmpeg-${{ runner.os }}-v1
+
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
