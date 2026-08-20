@@ -88,6 +88,15 @@ export interface ShotMotion {
   easing: string;
 }
 
+/**
+ * Credito de licenca, ja resolvido pelo control plane — nunca template, nunca
+ * montado aqui. Parte do acervo do Wikimedia Commons (ADR 0037) e CC BY / CC
+ * BY-SA e exige credito visivel para uso legal.
+ */
+export interface ShotCredit {
+  text: string;
+}
+
 export interface TimelineShot {
   order: number;
   assetId: string;
@@ -106,6 +115,8 @@ export interface TimelineShot {
   transition: TransitionSettings;
   /** So chega para `source.kind === "image"`. */
   motion?: ShotMotion;
+  /** So chega quando a midia do corte exige credito visivel. */
+  credit?: ShotCredit;
 }
 
 export interface ColorGradingSettings {

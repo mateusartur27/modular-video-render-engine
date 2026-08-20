@@ -3,6 +3,7 @@ import { AbsoluteFill, continueRender, delayRender } from "remotion";
 import { loadDeclaredFonts } from "./fonts";
 import { AudioMix } from "./components/AudioMix";
 import { Captions } from "./components/Captions";
+import { Credit } from "./components/Credit";
 import { Grade } from "./components/Grade";
 import { Overlays } from "./components/Overlays";
 import { Shots } from "./components/Shots";
@@ -21,8 +22,9 @@ export interface VideoCompositionProps extends Record<string, unknown> {
  * formato, corte, cor, legenda, audio e overlay vem do `RenderManifest@2`.
  *
  * Ordem das camadas, de baixo para cima: cortes de video, tratamento de cor,
- * legendas, overlays. Cor fica sob as legendas de proposito, para que o grading
- * nao altere as cores declaradas do texto.
+ * legendas, credito de licenca, overlays. Cor fica sob as legendas de
+ * proposito, para que o grading nao altere as cores declaradas do texto — e
+ * pela mesma razao o credito tambem fica acima da cor.
  */
 export const VideoComposition: React.FC<VideoCompositionProps> = ({ manifest }) => {
   // O render espera as fontes carregarem antes de desenhar o primeiro frame.
@@ -72,6 +74,7 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({ manifest }) 
         <Shots timeline={checked.timeline} editing={checked.editing} />
       </Grade>
       <Captions captions={checked.captions} />
+      <Credit timeline={checked.timeline} />
       <Overlays overlays={checked.overlays} />
       <AudioMix audio={checked.audio} composition={checked.composition} />
     </AbsoluteFill>
