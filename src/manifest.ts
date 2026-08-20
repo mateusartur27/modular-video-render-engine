@@ -64,15 +64,48 @@ export interface EditingSettings {
   assetReuse: boolean;
 }
 
+export type ShotMediaKind = "video" | "image";
+
+/**
+ * Movimento sintetico de fotografia (Ken Burns), declarado pelo control plane.
+ *
+ * O renderizador **nao inventa movimento**: escolher aqui tornaria o render
+ * irreproduzivel, porque o mesmo manifesto passaria a poder gerar videos
+ * diferentes. A unica liberdade deste lado e limitar o deslocamento ao que as
+ * dimensoes reais da imagem permitem, para nao revelar borda vazia.
+ *
+ * Deslocamento em fracao da imagem, 0.5 no centro. `scale` 1 preenche o quadro
+ * com recorte; acima de 1, mais ampliado.
+ */
+export interface ShotMotion {
+  type: "ken-burns";
+  startScale: number;
+  endScale: number;
+  startXPercent: number;
+  startYPercent: number;
+  endXPercent: number;
+  endYPercent: number;
+  easing: string;
+}
+
 export interface TimelineShot {
   order: number;
   assetId: string;
   artifact: ArtifactRef;
-  source: { width: number; height: number; fps: number | null; durationMs: number };
+  source: {
+    width: number;
+    height: number;
+    fps: number | null;
+    durationMs: number;
+    /** Ausente e lido como `"video"`, para manifesto antigo continuar valido. */
+    kind?: ShotMediaKind;
+  };
   startFrame: number;
   durationFrames: number;
   sourceTrimStartMs: number;
   transition: TransitionSettings;
+  /** So chega para `source.kind === "image"`. */
+  motion?: ShotMotion;
 }
 
 export interface ColorGradingSettings {
