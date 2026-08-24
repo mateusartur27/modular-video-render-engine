@@ -74,7 +74,7 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({ manifest }) 
         <Shots timeline={checked.timeline} editing={checked.editing} />
       </Grade>
       <Captions captions={checked.captions} />
-      <Credit timeline={checked.timeline} />
+      <Credit timeline={checked.timeline} safeAreaBottomPx={checked.captions.layout.safeAreaBottomPx} />
       <Overlays overlays={checked.overlays} />
       <AudioMix audio={checked.audio} composition={checked.composition} />
     </AbsoluteFill>

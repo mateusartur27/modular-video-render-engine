@@ -12,12 +12,17 @@ import type { TimelineShot } from "../manifest";
  * aparecer so enquanto aquela midia esta na tela e sumir com ela — nao com o
  * video inteiro.
  *
- * Posicao: canto inferior esquerdo, fora do bloco central onde as legendas
- * (`layoutMode: centered-phrase-stack`, ancoradas por volta do meio da tela)
- * normalmente ficam. Texto pequeno e discreto de proposito: e obrigacao
- * legal, nao elemento editorial.
+ * Posicao: canto inferior esquerdo, acima da mesma faixa de seguranca que as
+ * legendas ja respeitam (`captions.layout.safeAreaBottomPx`) — visto de
+ * verdade em 2026-08-24 que um valor fixo de 28px deixava o credito dentro
+ * dessa faixa, a mesma zona reservada porque o proprio TikTok cobre com sua
+ * UI (legenda, curtir, comentar). Texto pequeno e discreto de proposito: e
+ * obrigacao legal, nao elemento editorial.
  */
-export const Credit: React.FC<{ timeline: TimelineShot[] }> = ({ timeline }) => (
+export const Credit: React.FC<{ timeline: TimelineShot[]; safeAreaBottomPx: number }> = ({
+  timeline,
+  safeAreaBottomPx,
+}) => (
   <>
     {timeline
       .filter((shot): shot is TimelineShot & { credit: NonNullable<TimelineShot["credit"]> } => shot.credit !== undefined)
@@ -33,7 +38,7 @@ export const Credit: React.FC<{ timeline: TimelineShot[] }> = ({ timeline }) => 
               style={{
                 position: "absolute",
                 left: 28,
-                bottom: 28,
+                bottom: safeAreaBottomPx + 16,
                 maxWidth: "62%",
                 fontFamily: '"Montserrat", "Segoe UI", Arial, sans-serif',
                 fontSize: 24,
