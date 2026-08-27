@@ -160,6 +160,10 @@ export interface CaptionsTrack {
    */
   layout: {
     fontFamily: string;
+    /** Campos explicitos novos; opcionais para abrir manifestos @2 antigos. */
+    impactSerifFontFamily?: string;
+    impactSansFontFamily?: string;
+    /** Alias legado de impactSerifFontFamily. */
     highlightFontFamily: string;
     secondaryFontFamily: string;
     layoutMode: string;

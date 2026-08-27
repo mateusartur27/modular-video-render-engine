@@ -30,10 +30,12 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({ manifest }) 
   // O render espera as fontes carregarem antes de desenhar o primeiro frame.
   //
   // Sem `delayRender` o Remotion renderiza com o que estiver disponivel, e o
-  // resultado seria o de antes: pilha CSS correta, fonte ausente, sans generico
-  // no lugar do que o canal declarou. O `continueRender` acontece mesmo quando o
-  // carregamento falha, porque um render sem a fonte certa e melhor que nenhum.
-  const [handle] = useState(() => delayRender("Carregando as fontes do manifesto"));
+  // resultado seria o de antes: pilha CSS correta, mas fallback usado antes de
+  // uma fonte que ainda estava baixando. Falha real de uma face e tolerada: as
+  // demais continuam carregando e a pilha CSS assume somente naquele caso.
+  const [handle] = useState(() =>
+    delayRender("Carregando as fontes do manifesto", { timeoutInMilliseconds: 60_000 }),
+  );
 
   useEffect(() => {
     if (!manifest) {
@@ -42,10 +44,21 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({ manifest }) 
     }
 
     loadDeclaredFonts(manifest)
-      .catch((error: unknown) => {
-        console.warn(`Falha ao carregar fontes declaradas: ${String(error)}`);
+      .then(({ loaded, failed }) => {
+        console.info(
+          `Fontes carregadas: ${loaded.map((font) => `${font.family} ${font.style} ${font.weight}`).join(", ")}`,
+        );
+        for (const failure of failed) {
+          console.warn(`[font-fallback] ${failure.reason}`);
+        }
+        continueRender(handle);
       })
-      .finally(() => continueRender(handle));
+      .catch((error: unknown) => {
+        // Defesa final: um defeito inesperado do loader nao pode derrubar o
+        // video. A pilha CSS continua determinando o fallback do quadro.
+        console.warn(`[font-fallback] Falha inesperada ao preparar fontes: ${String(error)}`);
+        continueRender(handle);
+      });
   }, [handle, manifest]);
 
   if (!manifest) {

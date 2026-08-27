@@ -66,14 +66,23 @@ npx remotion render src/index.ts Video out/video.mp4
 node scripts/verify-output.mjs --video out/video.mp4
 ```
 
+## Garantia tipografica
+
+As familias chegam pelo manifesto e sao resolvidas no catalogo do Google Fonts.
+O renderizador carrega somente os pesos, estilos e subconjuntos latinos usados
+pelas palavras e espera os arquivos terminarem antes do primeiro frame. Familia
+inexistente ou download incompleto fica registrado como `[font-fallback]`; as
+outras familias continuam carregando e o video segue com a pilha CSS de fallback
+somente para a face indisponivel.
+
+O layout atual separa quatro papeis em quatro familias: texto comum,
+`impactSerif`, `impactSans` e secundaria. `highlightFontFamily` permanece no
+manifesto como alias legado de `impactSerifFontFamily` para compatibilidade.
+
 ## Limites conhecidos
 
 Registrados aqui para nao serem confundidos com qualidade aprovada:
 
-- **Fontes**: a composicao pede a familia declarada no manifesto e cai em um
-  fallback quando ela nao existe no ambiente de render. O runner do Actions tem
-  menos fontes que uma maquina Windows, entao a paridade tipografica exige
-  embarcar as fontes neste repositorio. Ainda nao foi feito.
 - **Presets de cor**: `cinematic-teal-orange` e implementado aqui como capacidade
   nomeada do renderizador, e o canal apenas escolhe pelo nome. A implementacao
   aproxima o balanco de cor por faixa tonal; nao e identica ao filtro FFmpeg que

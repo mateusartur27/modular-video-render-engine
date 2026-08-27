@@ -146,10 +146,9 @@ function easingFor(name: string): (input: number) => number {
 }
 
 /**
- * O manifesto declara a familia desejada. Se ela nao estiver disponivel no
- * ambiente de render, o fallback mantem o peso visual em vez de cair numa serifa
- * estreita. Familias ausentes sao uma divergencia de paridade conhecida e devem
- * ser resolvidas embarcando as fontes neste repositorio.
+ * O manifesto declara a familia desejada, e `loadDeclaredFonts` tenta carrega-la
+ * antes do primeiro frame. Esta pilha e o fallback deliberado quando a familia
+ * ou uma face nao estiver disponivel; o loader registra o ocorrido no job.
  */
 function fontStack(family: string): string {
   return `"${family}", "Arial Black", "Segoe UI", Arial, sans-serif`;
