@@ -127,6 +127,14 @@ const HorizontalFlowCaptions: React.FC<{ captions: CaptionsTrack; frame: number 
               flexWrap: "wrap",
               justifyContent: "center",
               alignContent: "center",
+              // Sem isto o flex cai no padrao `stretch`: uma palavra de
+              // impacto, maior que as vizinhas, nivelava pelo topo da linha
+              // em vez de compartilhar a linha de base do texto -- visivel
+              // como "David Rolfe" (maior, dourado) grudado no topo de
+              // "decidiu apostar no programador" em vez de sentado na mesma
+              // base. `baseline` alinha pela linha de base real da fonte,
+              // que e como toda tipografia com tamanhos mistos se comporta.
+              alignItems: "baseline",
               rowGap: 8,
               columnGap: "0.4em",
             }}
