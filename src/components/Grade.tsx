@@ -48,6 +48,18 @@ const PRESETS: Record<string, ChannelMatrix> = {
     bGain: 1.08,
     bOffset: 0.03,
   },
+  // Documentario editorial: mesmo deslocamento quente de `cinematic-teal-orange`,
+  // so que mais discreto — sombras levemente aquecidas, sem empurrar as altas
+  // luzes para o azul. Pensado para acompanhar contraste/saturacao/vinheta mais
+  // baixos do que o preset punchy de video curto.
+  "documentary-warm": {
+    rGain: 1.03,
+    rOffset: 0.015,
+    gGain: 1.0,
+    gOffset: 0.0,
+    bGain: 0.97,
+    bOffset: -0.01,
+  },
 };
 
 export const Grade: React.FC<{ grading: ColorGradingSettings | undefined; children: React.ReactNode }> = ({

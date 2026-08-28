@@ -148,6 +148,12 @@ export interface CaptionWord {
   };
   animation: { entrance: string; exit: string; easing: string; durationFrames: number };
   semanticTag?: string;
+  /**
+   * Indice da frase a que a palavra pertence. Usado por `Captions.tsx` para
+   * agrupar palavras num unico contêiner em `layoutMode: "horizontal-flow"`.
+   * Opcional para manifesto anterior a esta mudanca continuar valido.
+   */
+  phraseGroup?: number;
 }
 
 export interface CaptionsTrack {
@@ -176,6 +182,12 @@ export interface CaptionsTrack {
     strokeColor: string;
     strokeWidthPx: number;
     lineHeightPx: number;
+    /**
+     * Largura maxima do bloco de legenda, em fracao do quadro. So tem efeito
+     * em `layoutMode: "horizontal-flow"`. Ausente, `Captions.tsx` aplica seu
+     * proprio padrao.
+     */
+    maxWidthRatio?: number;
   };
   words: CaptionWord[];
 }
